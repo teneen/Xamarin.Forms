@@ -471,6 +471,10 @@ namespace Xamarin.Forms.Platform.MacOS
 			Control.AttributedStringValue = new NSAttributedString(htmlData, attr, out _);
 #endif
 			_perfectSizeValid = false;
+
+			// Setting AttributedText will reset style-related properties, so we'll need to update them again
+			UpdateTextColor();
+			UpdateFont();
 		}
 
 		protected virtual NSAttributedStringDocumentAttributes GetNSAttributedStringDocumentAttributes()
@@ -484,9 +488,6 @@ namespace Xamarin.Forms.Platform.MacOS
 
 		void UpdateFont()
 		{
-			if (Element?.TextType != TextType.Text)
-				return;
-
 			if (IsTextFormatted)
 			{
 				UpdateFormattedText();
@@ -503,9 +504,6 @@ namespace Xamarin.Forms.Platform.MacOS
 
 		void UpdateTextColor()
 		{
-			if (Element?.TextType != TextType.Text)
-				return;
-
 			if (IsTextFormatted)
 			{
 				UpdateFormattedText();
@@ -525,6 +523,7 @@ namespace Xamarin.Forms.Platform.MacOS
 #endif
 			UpdateLayout();
 		}
+
 		void UpdateLayout()
 		{
 #if __MOBILE__
