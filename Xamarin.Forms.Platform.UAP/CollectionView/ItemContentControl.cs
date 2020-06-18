@@ -11,6 +11,7 @@ namespace Xamarin.Forms.Platform.UWP
 	{
 		View _view;
 		IVisualElementRenderer _renderer;
+		DataTemplate _currentTemplate;
 
 		public ItemContentControl()
 		{
@@ -145,15 +146,30 @@ namespace Xamarin.Forms.Platform.UWP
 				Platform.SetRenderer(view, _renderer);
 				Content = _renderer.ContainerElement;
 				itemsView?.AddLogicalChild(view);
+			VisualElement visualElement;
+
+			if (_renderer?.ContainerElement == null || _currentTemplate != formsTemplate)
+			{
+				// If the content has never been realized (i.e., this is a new instance), 
+				// or if we need to switch DataTemplates (because this instance is being recycled)
+				// then we'll need to create the content from the template 
+				visualElement = formsTemplate.CreateContent(dataContext, container) as VisualElement;
+				visualElement.BindingContext = dataContext;
+				_renderer = Platform.CreateRenderer(visualElement);
+				Platform.SetRenderer(visualElement, _renderer);
+
+				// Keep track of the template in case this instance gets reused later
+				_currentTemplate = formsTemplate;
 			}
 			else
 			{
 				// We are reusing this ItemContentControl and we can reuse the Element
-				var view = _renderer.Element;
-				view.BindingContext = dataContext;
-				Content = _renderer.ContainerElement;
-				itemsView?.AddLogicalChild(view);
+				visualElement = _renderer.Element;
+				visualElement.BindingContext = dataContext;
 			}
+
+			Content = _renderer.ContainerElement;
+			itemsView?.AddLogicalChild(visualElement);
 		}
 
 		internal void UpdateIsSelected(bool isSelected)
